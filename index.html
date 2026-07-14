@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Chaos">
+<meta name="theme-color" content="#000000">
+<title>Chaos by Ronk</title>
+<style>
+  :root{
+    --bg:#f4f4f4; --card:#ffffff; --ink:#0b0b0b; --sub:#8a8a8a;
+    --line:#e4e4e4; --ink2:#2a2a2a; --soft:#efefef;
+    --gray:#9a9a9a; --gray-lite:#d9d9d9;
+    --shadow:0 6px 22px rgba(0,0,0,.07);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,"Segoe UI",Rubik,Arial,sans-serif;background:var(--bg);color:var(--ink);
+    max-width:480px;margin:0 auto;min-height:100vh;position:relative;padding-bottom:84px}
+  header.app{background:linear-gradient(135deg,#232323,#000);color:#fff;
+    padding:calc(15px + env(safe-area-inset-top)) 18px 15px;position:sticky;top:0;z-index:20;
+    box-shadow:0 4px 16px rgba(0,0,0,.3)}
+  header.app .brand{display:flex;align-items:baseline;gap:8px}
+  header.app .brand .nm{font-weight:900;font-size:23px;letter-spacing:.5px}
+  header.app .brand .by{font-size:12px;opacity:.6;font-weight:600}
+  header.app .brand .spark{margin-inline-start:auto;font-size:19px;opacity:.9}
+  header.app .tag{font-size:12.5px;opacity:.72;margin-top:4px;letter-spacing:.2px}
+  .screen{display:none;padding:16px 14px}
+  .screen.active{display:block;animation:fade .22s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  h2.title{font-size:19px;margin:2px 2px 14px;display:flex;align-items:baseline;gap:9px;font-weight:900;letter-spacing:.3px}
+  h2.title small{font-size:12px;color:var(--sub);font-weight:600;letter-spacing:0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow);margin-bottom:13px}
+  label.fld{font-size:11.5px;color:var(--sub);font-weight:800;letter-spacing:.4px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;margin:2px 2px 9px}
+  label.fld .mng{color:var(--ink);cursor:pointer;font-size:11px;text-transform:none;letter-spacing:0;border:1px solid var(--line);padding:3px 9px;border-radius:20px}
+  .clients{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+  .chip{position:relative;border:1.5px solid var(--ink);background:#fff;color:var(--ink);border-radius:20px;
+    padding:7px 13px;font-size:13.5px;font-weight:700;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+  .chip:not(.on){border-color:var(--line)}
+  .chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  .chip .del{background:rgba(0,0,0,.12);color:var(--ink);width:17px;height:17px;border-radius:50%;display:none;place-items:center;font-size:11px}
+  .chip.on .del{background:rgba(255,255,255,.28);color:#fff}
+  body.manage .chip .del{display:grid}
+  .addrow{display:flex;gap:7px;margin-top:11px}
+  .addrow input{flex:1;border:1.5px solid var(--line);border-radius:11px;padding:10px 12px;font-size:14.5px;font-family:inherit}
+  .addrow input:focus{outline:none;border-color:var(--ink)}
+  .meta-row{display:flex;gap:9px;margin:14px 0 4px}
+  .meta{flex:1;background:var(--soft);border-radius:12px;padding:9px 12px}
+  .meta .k{font-size:10.5px;color:var(--sub);font-weight:800;letter-spacing:.4px;text-transform:uppercase}
+  .meta .v{font-size:14px;font-weight:800;margin-top:2px}
+  textarea{width:100%;border:1.5px solid var(--line);border-radius:14px;padding:13px;font-family:inherit;
+    font-size:16px;line-height:1.6;min-height:130px;resize:vertical;color:var(--ink)}
+  textarea:focus{outline:none;border-color:var(--ink)}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:none;background:var(--ink);
+    color:#fff;font-weight:800;font-size:15.5px;padding:14px;border-radius:14px;cursor:pointer;font-family:inherit;
+    box-shadow:0 5px 16px rgba(0,0,0,.22);transition:.15s;letter-spacing:.3px}
+  .btn:active{transform:scale(.98)}
+  .btn:disabled{opacity:.4;box-shadow:none}
+  .btn.sm{width:auto;padding:10px 15px;font-size:14px;border-radius:11px;box-shadow:none}
+  .btn.gray{background:var(--soft);color:var(--ink);box-shadow:none}
+  .hint{font-size:12px;color:var(--sub);text-align:center;margin-top:9px;line-height:1.5}
+  .parsed{margin-top:14px}
+  .parsed h3{font-size:13px;color:var(--ink);font-weight:800;margin:0 2px 10px;display:flex;align-items:center;gap:6px}
+  .parsed h3 span{color:var(--sub);font-weight:500}
+  .ptask{display:flex;gap:11px;align-items:flex-start;background:#fafafa;border:1px solid var(--line);border-radius:12px;padding:10px 11px;margin-bottom:8px}
+  .ptask .dot{width:13px;height:13px;border-radius:50%;margin-top:4px;flex:none;background:var(--gray-lite);cursor:pointer;border:1.5px solid var(--gray-lite)}
+  .ptask.hi .dot{background:var(--ink);border-color:var(--ink)} .ptask.mid .dot{background:var(--gray);border-color:var(--gray)}
+  .ptask .body{flex:1}
+  .ptask .txt{font-size:14.5px;font-weight:600;line-height:1.45}
+  .ptask .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .ptask .rm{color:var(--sub);cursor:pointer;font-size:17px;line-height:1;padding:0 2px}
+  .t{font-size:11px;font-weight:800;padding:3px 8px;border-radius:7px;background:var(--soft);color:var(--sub);letter-spacing:.2px}
+  .t.due{background:#fff;color:var(--ink);border:1px solid var(--ink)} .t.pri{background:var(--ink);color:#fff} .t.cli{background:var(--soft);color:var(--ink)}
+  .group-h{display:flex;align-items:center;justify-content:space-between;margin:18px 3px 9px}
+  .group-h .name{font-weight:900;font-size:15px;display:flex;align-items:center;gap:8px;letter-spacing:.2px}
+  .group-h .name::before{content:"";width:7px;height:7px;background:var(--ink);border-radius:50%}
+  .group-h.doneh .name{color:var(--sub)} .group-h.doneh .name::before{background:var(--gray-lite)}
+  .group-h .cnt{font-size:11px;color:var(--sub);font-weight:800;text-transform:uppercase;letter-spacing:.3px}
+  .task{display:flex;gap:11px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin-bottom:9px;box-shadow:var(--shadow)}
+  .task.done{opacity:.5}
+  .check{width:24px;height:24px;border-radius:7px;border:2px solid var(--gray-lite);flex:none;margin-top:1px;cursor:pointer;display:grid;place-items:center;transition:.15s}
+  .task.done .check{background:var(--ink);border-color:var(--ink)}
+  .check svg{width:13px;height:13px;stroke:#fff;stroke-width:3.6;fill:none;opacity:0}
+  .task.done .check svg{opacity:1}
+  .task .txt{font-size:15px;font-weight:600;line-height:1.45}
+  .task.done .txt{text-decoration:line-through}
+  .task .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;align-items:center}
+  .bartop{height:4px;border-radius:4px;width:32px;margin-bottom:9px;background:var(--gray-lite);cursor:pointer}
+  .bartop.hi{background:var(--ink)} .bartop.mid{background:var(--gray)} .bartop.lo{background:var(--gray-lite)}
+  .trash{color:#c2c2c2;cursor:pointer;font-size:14px;padding:2px 4px;margin-inline-start:auto;font-weight:700}
+  .sumcard{background:var(--ink);border-color:var(--ink);color:#fff}
+  .sumcard .hd{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;opacity:.6;margin-bottom:8px}
+  .sumcard .ai{font-size:14.5px;line-height:1.75} .sumcard .ai b{color:#fff;border-bottom:2px solid rgba(255,255,255,.4)}
+  .kpis{display:flex;gap:9px;margin-bottom:13px}
+  .kpi{flex:1;background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px 6px;text-align:center;box-shadow:var(--shadow)}
+  .kpi .n{font-size:23px;font-weight:900} .kpi .l{font-size:10.5px;color:var(--sub);margin-top:2px;font-weight:800;text-transform:uppercase;letter-spacing:.3px}
+  .kpi.inv{background:var(--ink);border-color:var(--ink)} .kpi.inv .n{color:#fff} .kpi.inv .l{color:#b5b5b5}
+  .clientstat{display:flex;align-items:center;justify-content:space-between;padding:12px 4px;border-bottom:1px solid var(--line)}
+  .clientstat:last-child{border-bottom:none}
+  .clientstat .nm{font-weight:800;font-size:14.5px} .clientstat .mini{font-size:11.5px;color:var(--sub);margin-top:3px}
+  .pill{font-size:10.5px;font-weight:900;padding:5px 11px;border-radius:20px;letter-spacing:.3px;text-transform:uppercase}
+  .pill.ok{background:#fff;color:var(--sub);border:1px solid var(--line)} .pill.warn{background:var(--ink);color:#fff} .pill.mid{background:var(--soft);color:var(--ink)}
+  .srcrow{display:flex;gap:7px;margin-bottom:12px}
+  .src{flex:1;text-align:center;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:9px 4px;font-size:12px;font-weight:800;color:var(--sub);position:relative}
+  .src .ic{font-size:15px;display:block;margin-bottom:4px;font-weight:900}
+  .src .soon{position:absolute;top:-7px;inset-inline-start:50%;transform:translateX(50%);background:var(--ink);color:#fff;font-size:8.5px;padding:1px 6px;border-radius:8px;letter-spacing:.3px}
+  .src.on{border-color:var(--ink);background:var(--ink);color:#fff}
+  .searchbar input{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px 13px;font-size:16px;font-family:inherit}
+  .searchbar input:focus{outline:none;border-color:var(--ink)}
+  .empty{text-align:center;color:var(--sub);font-size:13.5px;padding:34px 14px;line-height:1.75}
+  .empty .big{font-size:40px;display:block;margin-bottom:10px;color:var(--gray-lite);font-weight:900}
+  .toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:12.5px;font-weight:700;padding:10px 16px;border-radius:22px;opacity:0;transition:.3s;z-index:40;pointer-events:none}
+  .toast.show{opacity:.97}
+  nav.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;
+    border-top:1px solid var(--line);display:flex;padding:8px 6px calc(9px + env(safe-area-inset-bottom));z-index:30;box-shadow:0 -4px 18px rgba(0,0,0,.05)}
+  nav.tabs button{flex:1;background:none;border:none;font-family:inherit;color:var(--gray);font-size:11px;font-weight:800;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:4px;letter-spacing:.3px}
+  nav.tabs button .ic{font-size:19px;line-height:1;font-weight:900}
+  nav.tabs button.on{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div class="brand"><span class="nm">CHAOS</span><span class="by">by Ronk</span><span class="spark">✦</span></div>
+  <div class="tag">זרוק את הבלאגן — אני אעשה סדר.</div>
+</header>
+
+<!-- DUMP -->
+<section class="screen active" id="scr-capture">
+  <div class="card">
+    <label class="fld"><span>לקוח</span><span class="mng" id="mngBtn" onclick="toggleManage()">ניהול</span></label>
+    <div class="clients" id="clientChips"></div>
+    <div class="addrow">
+      <input id="newClient" placeholder="הוסף לקוח חדש..." onkeydown="if(event.key==='Enter')addClient()">
+      <button class="btn sm" onclick="addClient()">הוסף</button>
+    </div>
+    <div class="meta-row">
+      <div class="meta"><div class="k">תאריך</div><div class="v" id="capDate">—</div></div>
+      <div class="meta"><div class="k">שעה</div><div class="v" id="capTime">—</div></div>
+    </div>
+    <div class="hint" style="text-align:right">התאריך והשעה נתפסים אוטומטית.</div>
+  </div>
+
+  <div class="card">
+    <label class="fld"><span>פריקה חופשית מהפגישה</span></label>
+    <textarea id="freeText" placeholder="פשוט תזרוק הכל כמו שיוצא...&#10;לדוגמה: דחוף לשלוח הצעת מחיר עד יום חמישי. להכין מצגת לישיבה מחר. לבדוק נתונים מהרבעון."></textarea>
+    <div style="height:12px"></div>
+    <button class="btn" id="orgBtn" onclick="organize()">✦ סדר את הכאוס</button>
+    <div class="hint">כותבים ברצף — המנוע מפרק למשימות, מזהה דחיפות ותאריכי יעד.</div>
+    <div class="parsed" id="parsed" style="display:none"></div>
+  </div>
+</section>
+
+<!-- ORDER -->
+<section class="screen" id="scr-tasks">
+  <h2 class="title">סֵדֶר <small>· ממוין לפי דחיפות</small></h2>
+  <div id="taskList"></div>
+</section>
+
+<!-- PULSE -->
+<section class="screen" id="scr-status">
+  <h2 class="title">דּוֹפֶק <small>· תמונת מצב חכמה</small></h2>
+  <div id="statusBody"></div>
+</section>
+
+<!-- HUNT -->
+<section class="screen" id="scr-search">
+  <h2 class="title">צַיִד <small>· חיפוש תכתובות</small></h2>
+  <div class="hint" style="text-align:right;margin:0 2px 12px">מחפש כרגע בתוך המשימות שלך. Gmail / WhatsApp / Claude יתווספו בשלב הבא.</div>
+  <div class="srcrow">
+    <div class="src on"><span class="ic">☰</span>המשימות</div>
+    <div class="src"><span class="soon">בקרוב</span><span class="ic">G</span>Gmail</div>
+    <div class="src"><span class="soon">בקרוב</span><span class="ic">W</span>WhatsApp</div>
+    <div class="src"><span class="soon">בקרוב</span><span class="ic">C</span>Claude</div>
+  </div>
+  <div class="searchbar"><input id="q" placeholder="מילה מהמשימה או שם לקוח..." oninput="runSearch()"></div>
+  <div id="results" style="margin-top:12px"></div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<nav class="tabs">
+  <button class="on" data-scr="capture" onclick="go('capture',this)"><span class="ic">✳</span>פריקה</button>
+  <button data-scr="tasks" onclick="go('tasks',this)"><span class="ic">☰</span>סדר</button>
+  <button data-scr="status" onclick="go('status',this)"><span class="ic">◈</span>דופק</button>
+  <button data-scr="search" onclick="go('search',this)"><span class="ic">◎</span>ציד</button>
+</nav>
+
+<script>
+/* ---------- PWA install ---------- */
+const ICON192='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAFj0lEQVR4nO3c0W6jSBBGYRzNHXn/J4XrzEWGiHgwpunqrqr+zyettBrt2kxch26wnccUzDzPX97HgHbWdX14H8Oe68Ew7Jgm3yi6PzFDjzO9Y+j2ZAw+SvQKofmTMPio0TqEZg/O4MNSqxDMH5TBR0vWIXxYPhjDj9asZ8ykJgYfHixWg+oVgOGHF4vZqwqA4Ye32hm8HQDDjyhqZvFWAAw/ork7k8UBMPyI6s5sFgXA8CO60hm9HADDjyxKZvVSAAw/srk6s28DYPiR1ZXZNf0oBJDNaQCc/ZHduxl+GQDDj1GczTJbIEg7DICzP0bzaqZZASDtvwA4+2NUR7PNCgBpvwLg7I/RPc84KwCk/QTA2R8q9rPOCgBpBABpH9PE9gd6tplnBYA0AoA0AoA0AoC0BxfAUMYKAGkEAGkEAGkEAGkEAGkEAGkEAGkEAGkEAGkEAGkEAGkEAGkEAGl/vA/A0rIsP//++fnpeCTIYoiPQ+8H/xkh4AxbIEhLvwKcnf33WAlwJPUKcHX4gVdSBwDUIgBIkwmgdru0LMvPPxjHUO8DtHA08NufcWGdn8wKABwhgBPvtjtsifJLG0DrwVuWhS2OgLQB9MDZfXwEYIBQ8pIKgEHFM6kAgGcEcICVQgcBQBoBGGHVyIkAIE0uAM7U2JMLANgjAEhLGQDbGFhJGUBLNXERZj58ISYgfsFXPwQQCN8+609yC8RWBRvJAKK5+s0ywrVHAMZafU2S4W8jTQDZBoAQcggfwH6QMr74V75YDz+hA+g9HK2ejyGPK2QAZ9sHq2HKPJSZjz2aUO8DeL2wPZ6XX7MSU6gVoPeAeP9iK87k/kIFkMXdUC0HnnhshNoCTdP3cI384vbeCnl+rujodYy2DQwXgJXWIT2/kB7RnsX06nNFPQbw7GcR7bNNIbdAUX44JUqO2fu6o+Xt3quP7X39tQkZgJUWIZ09ZoQISgbQ43lbH0epsAFkXAU8nH2E+s7/q2bYa4BN74tqz4v4O88bIQLP90jCrgC4LsIQZyURQO+zi8fZLHsEXscvEcA0fQ9lz8HkGiaH0AG0uouz/6clIogvdAAjqAmNgNqTD6BkyGoGkmGOacgAWg1b7YVayWqw/Xcq4XAbVIjXi60SUwkCKGA5QK9Wg6M/t37eaDyPKfw7wT3eWfV899bjxW/xnFnfh2AF+OfdUEQ8c5aIesvX++dKAEl4D8oVpRf5Ef5O4bdAPW0vyGi/ndnroyB8IyypaC/SJtvXRaP+HPfYAg0uwxB6IoBksu2xo0sRAC/kbwy3Ha4BEttfbBLEPSlWgBKKg6D4d7YyXABAieECyHSbEP6GCwAoQQCQRgCQNlwA3BFBiTQBMNhoIU0A0zT+Z/bRX6oAAGuPeZ6/vA/ijtE+sw8faQMALLAFgjQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgLSPdV0f3gcBeFjX9cEKAGkEAGkEAGkEAGkf0/R9MeB9IEBP28yzAkAaAUDaTwBsg6BiP+usAJD2KwBWAYzuecZZASDtvwBYBTCqo9lmBYC0wwBYBTCaVzPNCgBpLwNgFcAozmb5dAUgAmT3bobZAkHa2wBYBZDVldm9tAIQAbK5OrOXt0BEgCxKZrXoGoAIEF3pjBZfBBMBorozm7fuAhEBork7k7dvgxIBoqiZxar3AYgA3mpnsPqNMCKAF4vZMx3eeZ6/LB8POGJ50jX9KASrAVqznrFmA8tqAEutTq7Nz9iEgBqtdxXdtiyEgBK9ttPd9+yEgDO9ryNdL1qJAdPke/Mk3F0bohhbtDuFfwHLsgVzhaJEuQAAAABJRU5ErkJggg==';
+const ICON512='data:image/png;base64,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';
+const ICON180='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAFGUlEQVR4nO3dyZLaShBGYdHhHbz/k0rr9qLdDgYNNWfmX+fb3RsBCHRIShKNb4sD9/v923obUG/btpv1NphsAAHPwSLwYQ9IxHMbFXfXByFi7OkZd5c7JmSk6BH2V+s7JGak6tFKs3cIIaNGq2ndZEITM2q1aqjqXUHI6KFmWhdPaGJGLzVtFQVNzOittLHsoIkZo5S0lhU0MWO03OaSgyZmWMlpLyloYoa11AYvgyZmeJHSYvNL34Cl06CZzvDmqsnDoIkZXp21yZIDUnaDZjrDu6NGP4ImZkSx1ypLDkh5CZrpjGjem2VCQwpBQ8r/oFluIKrndpnQkELQkPK1LCw3EN9vw0xoSCFoSCFoSLmxfoYSJjSkEDSkEDSkEDSkEDSkEDSkEDSkEDSkEDSkEDSk/LHegJbWdX3578fjYbQlsCIzod9jPvp/0CYR9Fm4RD0XiaCvEPU8pgga8wgfNNMXz8IHDTwjaEghaEghaEiZJmgOHucQOmgixbvQQQPvCBpSCBpSCBpSCBpSwgbNGQ7sCRs0sIegIYWgIYWgIYWgISVk0JzhwBGp3+W4sq5r0W918HsfcYSc0CPxex+xEPQJfu8jHoI+QLAxETSkhDooZGp+4oD1VZgJPTLmKG8cDlg/hQja606y3C4OWPeFWnJE1nJpMHOwV9xPaIWdx9JgHPdBR9d6aZB6m1nfMARtbNbweiHoN0qBKT2XVBIHhb8HWBY78OwLTznLg0jnj4+el4fnIDWhU17QyFPLetvXdb08JrDeRqmgPbHesb9abUfO/Vg+d/MlR+2T9/Axp670bIzFvmFCO+Flor+r2S6L52Q+oT2x+HgecZ9e3yw9MKEbmCmYXKNfG4J2hDdGPYJujChtmQfNWYprvEnSmQetxNvB4IwI+h8v4TxvR8428Un3g6AbafmGKL2E7DHq0dtE0Iuf6VzqOZrH4+Ey7FGmvrASPeRlOZ6ALaMufZ249J1p7wVL/cadRcytd/CoYEoex+pTInTQEbXa0aODyXk8yyXP1EuOqKyCufpDCg9rd4K+0OqvYTzs7FY8PxeWHCfezx70uN+Rt52Bi6DVd5L68/PERdAe9Y4w0pmDSAgaUgi6s6in6aIi6AxRL4zMRDLo2lDObm9xgYHw00kG3VvKF4BSIyTWtriwUuH5okvtuWXPV98iCTuhPe3oFttS+kUrvJKd0GdT7+p2Vgi4npsJzc5EC26CBlogaEiRDjp3GcOyJz7poDEfgoYUgoYU+aC5BD0X+aAxF4KGlJBBl5yOa/WVUPjmKmiLv+MjZi2yX046QsDaXE1ooBZBQwpBQwpBQ0q4oDmowxl3QXO+GDXcBb0snC9Gudv9fv+23gigFZcTGihF0JBC0JBC0JBC0JBC0JBC0JBC0JBC0JBC0JBC0JBC0JBC0JBC0JBC0JDytW3bzXojgBa2bbsxoSGFoCGFoCHla1l+1h7WGwLU+G2YCQ0pBA0p/4Nm2YGonttlQkMKQUPKS9AsOxDNe7NMaEj5CJopjSj2Wt2d0EQN744aZckBKYdBM6Xh1VmbpxOaqOHNVZMsOSDlMmimNLxIaTFpQhM1rKU2mLzkIGpYyWkvaw1N1Bgtt7nsg0KixiglrRWd5SBq9FbaWPFpO6JGLzVtNYmSf7wTLbQYkk0urDCtUatVQ81DZFojR+th2PzSN9MaqXq00jU+pjX29Bx6w6Ypcc9t1Ce3yfKAuOdgsfx0sd4lcA0ejp/+AiuKxafmQ4VRAAAAAElFTkSuQmCC';
+(function(){try{
+  const mf={name:"Chaos by Ronk",short_name:"Chaos",start_url:".",scope:".",display:"standalone",
+    orientation:"portrait",background_color:"#000000",theme_color:"#000000",lang:"he",dir:"rtl",
+    icons:[{src:ICON192,sizes:"192x192",type:"image/png",purpose:"any"},
+           {src:ICON512,sizes:"512x512",type:"image/png",purpose:"any maskable"}]};
+  const l=document.createElement('link');l.rel='manifest';
+  l.href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'}));document.head.appendChild(l);
+  const a=document.createElement('link');a.rel='apple-touch-icon';a.href=ICON180;document.head.appendChild(a);
+}catch(e){}})();
+
+/* ---------- storage ---------- */
+let MEM=null;
+const store={read(){try{const s=localStorage.getItem('chaos_v1');return s?JSON.parse(s):null}catch(e){return MEM}},
+  write(d){try{localStorage.setItem('chaos_v1',JSON.stringify(d))}catch(e){MEM=d}}};
+let db=store.read()||{clients:[],tasks:[],seq:1,active:null};
+function save(){store.write(db)}
+
+/* ---------- helpers ---------- */
+const DAYS=["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"];
+const priRank={hi:0,mid:1,lo:2};
+function todayMid(){const d=new Date();d.setHours(0,0,0,0);return d}
+function fmtDate(d){return d.getDate()+"/"+(d.getMonth()+1)}
+function dayName(d){return DAYS[d.getDay()]}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1900)}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+function resolveDue(text){
+  const t0=todayMid();
+  const wd={"ראשון":0,"שני":1,"שלישי":2,"רביעי":3,"חמישי":4,"שישי":5,"שבת":6};
+  if(/היום/.test(text))return{label:"היום",iso:t0.toISOString()};
+  if(/מחרתיים/.test(text)){const d=new Date(t0);d.setDate(d.getDate()+2);return{label:"מחרתיים",iso:d.toISOString()}}
+  if(/מחר/.test(text)){const d=new Date(t0);d.setDate(d.getDate()+1);return{label:"מחר",iso:d.toISOString()}}
+  const m=text.match(/יום\s(ראשון|שני|שלישי|רביעי|חמישי|שישי|שבת)/);
+  if(m){const target=wd[m[1]];const d=new Date(t0);let add=(target-d.getDay()+7)%7;if(add===0)add=7;d.setDate(d.getDate()+add);return{label:"יום "+m[1],iso:d.toISOString()}}
+  if(/השבוע/.test(text)){const d=new Date(t0);const add=(4-d.getDay()+7)%7;d.setDate(d.getDate()+add);return{label:"השבוע",iso:d.toISOString()}}
+  return{label:"",iso:null};
+}
+function dueMeta(task){
+  if(!task.dueIso)return{label:task.dueLabel||"",over:false,today:false};
+  const due=new Date(task.dueIso);due.setHours(0,0,0,0);
+  const diff=Math.round((due-todayMid())/86400000);
+  let label=task.dueLabel||fmtDate(due);
+  if(diff<0)label="באיחור";else if(diff===0)label="היום";else if(diff===1)label="מחר";
+  return{label,over:diff<0,today:diff===0};
+}
+
+/* ---------- nav ---------- */
+function go(scr,el){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('scr-'+scr).classList.add('active');
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  if(scr==='tasks')renderTasks();if(scr==='status')renderStatus();if(scr==='search')runSearch();
+  document.body.classList.remove('manage');window.scrollTo(0,0);
+}
+
+/* ---------- clients ---------- */
+function toggleManage(){document.body.classList.toggle('manage')}
+function renderChips(){
+  const c=document.getElementById('clientChips');c.innerHTML='';
+  if(db.clients.length===0)c.innerHTML='<div style="color:var(--sub);font-size:13px;padding:4px">אין עדיין לקוחות — הוסף את הראשון למטה.</div>';
+  db.clients.forEach(cl=>{
+    const d=document.createElement('div');d.className='chip'+(cl===db.active?' on':'');
+    d.innerHTML=esc(cl)+'<span class="del" onclick="delClient(event,\''+cl.replace(/'/g,"\\'")+'\')">✕</span>';
+    d.onclick=(e)=>{if(e.target.classList.contains('del'))return;db.active=cl;save();renderChips()};
+    c.appendChild(d);
+  });
+  document.getElementById('orgBtn').disabled=db.clients.length===0;
+}
+function addClient(){
+  const i=document.getElementById('newClient');const v=i.value.trim();if(!v)return;
+  if(db.clients.includes(v)){toast('הלקוח כבר קיים');return}
+  db.clients.push(v);db.active=v;i.value='';save();renderChips();toast('נוסף: '+v);
+}
+function delClient(e,name){e.stopPropagation();
+  if(db.tasks.some(t=>t.client===name)){toast('יש משימות ללקוח הזה — לא נמחק');return}
+  db.clients=db.clients.filter(c=>c!==name);if(db.active===name)db.active=db.clients[0]||null;save();renderChips();
+}
+
+/* ---------- capture ---------- */
+function setNow(){const now=new Date();
+  document.getElementById('capDate').textContent="יום "+dayName(now)+", "+fmtDate(now);
+  document.getElementById('capTime').textContent=String(now.getHours()).padStart(2,'0')+":"+String(now.getMinutes()).padStart(2,'0')}
+setInterval(setNow,20000);
+
+let draft=[];
+function organize(){
+  if(!db.active){toast('בחר קודם לקוח');return}
+  const raw=document.getElementById('freeText').value.trim();if(!raw){toast('קודם תזרוק משהו');return}
+  let parts=raw.split(/[\n.;•]+|(?:,\s*(?=(?:צריך|דחוף|לבדוק|להכין|לשלוח|לתאם|לעדכן|להתקשר|לשלם|לחזור|ל[א-ת])))/g)
+    .map(s=>s.trim()).filter(s=>s.length>3);
+  const hiWords=/דחוף|בהקדם|חשוב|מיידי|קריטי|עד היום/;
+  const midWords=/עד|מחר|השבוע|יום (ראשון|שני|שלישי|רביעי|חמישי|שישי)/;
+  draft=parts.map(p=>{let pri="lo";if(hiWords.test(p))pri="hi";else if(midWords.test(p))pri="mid";
+    const due=resolveDue(p);return{txt:p,pri,dueLabel:due.label,dueIso:due.iso}});
+  renderDraft();
+}
+function renderDraft(){
+  const box=document.getElementById('parsed');
+  if(draft.length===0){box.style.display='none';return}
+  box.style.display='block';
+  box.innerHTML='<h3>✦ הוצאתי סדר מ-'+draft.length+' דברים <span>· '+esc(db.active)+' · הקש על העיגול לשינוי דחיפות</span></h3>'+
+    draft.map((t,i)=>`<div class="ptask ${t.pri==='hi'?'hi':t.pri==='mid'?'mid':''}">
+      <div class="dot" onclick="cyclePri(${i})"></div>
+      <div class="body"><div class="txt">${esc(t.txt)}</div><div class="tags"><span class="t cli">${esc(db.active)}</span>
+      ${t.pri==='hi'?'<span class="t pri">דחוף</span>':''}
+      ${t.dueLabel?'<span class="t due">'+esc(t.dueLabel)+'</span>':''}</div></div>
+      <div class="rm" onclick="rmDraft(${i})">✕</div></div>`).join('')+
+    `<div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn" style="flex:1" onclick="saveDraft()">שמור ${draft.length} משימות</button>
+      <button class="btn gray sm" onclick="draft=[];renderDraft()">בטל</button></div>`;
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function cyclePri(i){draft[i].pri=draft[i].pri==='lo'?'mid':draft[i].pri==='mid'?'hi':'lo';renderDraft()}
+function rmDraft(i){draft.splice(i,1);renderDraft()}
+function saveDraft(){
+  const created=new Date().toISOString();
+  draft.forEach(t=>db.tasks.push({id:db.seq++,client:db.active,txt:t.txt,pri:t.pri,dueLabel:t.dueLabel,dueIso:t.dueIso,done:false,created}));
+  save();const n=draft.length;draft=[];renderDraft();document.getElementById('freeText').value='';toast('✓ נשמרו '+n+' משימות');
+}
+
+/* ---------- tasks ---------- */
+function urgency(t){const dm=dueMeta(t);return priRank[t.pri]+(dm.over?-2:0)+(dm.today?-1:0)}
+function renderTasks(){
+  const wrap=document.getElementById('taskList');wrap.innerHTML='';
+  if(db.tasks.length===0){wrap.innerHTML='<div class="empty"><span class="big">☰</span>אין עדיין משימות.<br>עבור ל"פריקה", בחר לקוח וזרוק מה שעלה בפגישה.</div>';return}
+  const open=db.tasks.filter(t=>!t.done),done=db.tasks.filter(t=>t.done);
+  const byClient={};open.forEach(t=>(byClient[t.client]=byClient[t.client]||[]).push(t));
+  const order=Object.keys(byClient).sort((a,b)=>Math.min(...byClient[a].map(urgency))-Math.min(...byClient[b].map(urgency)));
+  order.forEach(cl=>{
+    const list=byClient[cl].sort((a,b)=>urgency(a)-urgency(b));
+    const h=document.createElement('div');h.className='group-h';
+    h.innerHTML=`<div class="name">${esc(cl)}</div><div class="cnt">${list.length} פתוחות</div>`;
+    wrap.appendChild(h);list.forEach(t=>wrap.appendChild(taskEl(t)));
+  });
+  if(done.length){const h=document.createElement('div');h.className='group-h doneh';
+    h.innerHTML=`<div class="name">בוצעו</div><div class="cnt">${done.length}</div>`;
+    wrap.appendChild(h);done.forEach(t=>wrap.appendChild(taskEl(t)));}
+}
+function taskEl(t){
+  const d=document.createElement('div');d.className='task'+(t.done?' done':'');
+  const dm=dueMeta(t);const bar=dm.over?'hi':t.pri==='hi'?'hi':t.pri==='mid'?'mid':'lo';
+  d.innerHTML=`<div class="check" onclick="toggleDone(${t.id})"><svg viewBox="0 0 24 24"><polyline points="4,12 10,18 20,6"/></svg></div>
+    <div style="flex:1"><div class="bartop ${bar}" onclick="cycleTaskPri(${t.id})" title="דחיפות"></div>
+    <div class="txt">${esc(t.txt)}</div><div class="tags">
+      ${dm.over?'<span class="t pri">באיחור</span>':t.pri==='hi'?'<span class="t pri">דחוף</span>':''}
+      ${dm.label&&!dm.over?'<span class="t due">'+esc(dm.label)+'</span>':''}
+      <span class="t cli">${esc(t.client)}</span><span class="trash" onclick="delTask(${t.id})">מחק</span></div></div>`;
+  return d;
+}
+function toggleDone(id){const t=db.tasks.find(x=>x.id===id);t.done=!t.done;save();toast(t.done?'✓ בוצע':'הוחזר');renderTasks()}
+function cycleTaskPri(id){const t=db.tasks.find(x=>x.id===id);t.pri=t.pri==='lo'?'mid':t.pri==='mid'?'hi':'lo';save();renderTasks()}
+function delTask(id){db.tasks=db.tasks.filter(x=>x.id!==id);save();toast('נמחק');renderTasks()}
+
+/* ---------- pulse ---------- */
+function renderStatus(){
+  const b=document.getElementById('statusBody');
+  if(db.tasks.length===0){b.innerHTML='<div class="empty"><span class="big">◈</span>הדופק יופיע כאן אחרי שתוסיף משימות.</div>';return}
+  const open=db.tasks.filter(t=>!t.done);
+  const over=open.filter(t=>dueMeta(t).over);
+  const today=open.filter(t=>dueMeta(t).today).length;
+  const done=db.tasks.filter(t=>t.done).length;
+  const clients=[...new Set(open.map(t=>t.client))];
+  const hi=open.slice().sort((a,b)=>urgency(a)-urgency(b))[0];const now=new Date();
+  let ai=`יש לך <b>${open.length} משימות פתוחות</b>${clients.length?` מול ${clients.length} לקוחות`:''}. `;
+  if(over.length)ai+=`<b>${over.length} באיחור</b> — הכי בוער: "${esc(over[0].txt)}" מול ${esc(over[0].client)}. `;
+  else ai+=`אין משימות באיחור. נקי. `;
+  if(today)ai+=`${today} מתוכננות להיום. `;
+  if(hi&&open.length)ai+=`תתחיל עם ${esc(hi.client)}.`;
+  let html=`<div class="card sumcard"><div class="hd">✦ דופק · יום ${dayName(now)}, ${fmtDate(now)}</div><div class="ai">${ai}</div></div>
+    <div class="kpis">
+      <div class="kpi"><div class="n">${open.length}</div><div class="l">פתוחות</div></div>
+      <div class="kpi inv"><div class="n">${over.length}</div><div class="l">באיחור</div></div>
+      <div class="kpi"><div class="n">${today}</div><div class="l">להיום</div></div>
+      <div class="kpi"><div class="n">${done}</div><div class="l">בוצעו</div></div></div>
+    <div class="card"><div style="font-size:13px;font-weight:900;margin-bottom:4px;letter-spacing:.2px">לפי לקוח</div><div id="cs"></div></div>`;
+  b.innerHTML=html;
+  const cs=b.querySelector('#cs');const allC=[...new Set(db.tasks.map(t=>t.client))];
+  allC.forEach(cl=>{
+    const o=db.tasks.filter(t=>t.client===cl&&!t.done);const ov=o.filter(t=>dueMeta(t).over).length;
+    const dn=db.tasks.filter(t=>t.client===cl&&t.done).length;
+    let pill=ov?`<span class="pill warn">${ov} באיחור</span>`:o.some(t=>t.pri==='hi')?`<span class="pill mid">דורש טיפול</span>`:o.length?`<span class="pill ok">בשליטה</span>`:`<span class="pill ok">הושלם</span>`;
+    const row=document.createElement('div');row.className='clientstat';
+    row.innerHTML=`<div><div class="nm">${esc(cl)}</div><div class="mini">${o.length} פתוחות · ${dn} בוצעו</div></div>${pill}`;
+    cs.appendChild(row);
+  });
+}
+
+/* ---------- hunt ---------- */
+function runSearch(){
+  const q=(document.getElementById('q').value||'').trim().toLowerCase();
+  const box=document.getElementById('results');
+  if(!q){box.innerHTML='<div class="empty"><span class="big">◎</span>הקלד מילה מהמשימה או שם לקוח.</div>';return}
+  const hits=db.tasks.filter(t=>(t.txt+' '+t.client).toLowerCase().includes(q));
+  if(!hits.length){box.innerHTML='<div class="empty">לא נמצאו משימות ל"'+esc(q)+'".</div>';return}
+  box.innerHTML=hits.map(t=>taskEl(t).outerHTML).join('');
+}
+
+renderChips();setNow();
+</script>
+</body>
+</html>

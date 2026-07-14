@@ -1,0 +1,8 @@
+{
+  "name": "chaos-by-ronk",
+  "version": "1.0.0",
+  "description": "Chaos by Ronk — task management from meetings",
+  "private": true,
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}
