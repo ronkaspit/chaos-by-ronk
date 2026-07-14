@@ -16,7 +16,6 @@ const gmailReady = () => CID && CSECRET && SB_URL && SB_SERVICE;
 function baseUrl(req){ return process.env.APP_URL || ('https://' + req.headers.host); }
 function send(res, code, body, ct){ res.writeHead(code, { 'Content-Type': ct || 'application/json; charset=utf-8' }); res.end(body); }
 
-// ---- Supabase token store (service role, bypasses RLS) ----
 async function sbSaveToken(space, refresh_token, email){
   await fetch(SB_URL + '/rest/v1/gmail_tokens', {
     method: 'POST',
@@ -32,7 +31,6 @@ async function sbGetToken(space){
   return Array.isArray(rows) && rows[0] ? rows[0] : null;
 }
 
-// ---- Google OAuth helpers ----
 async function exchangeCode(code, redirect_uri){
   const r = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -48,7 +46,6 @@ async function accessFromRefresh(refresh_token){
   return r.json();
 }
 
-// ---- Gmail search ----
 async function gmailSearch(accessToken, q){
   const list = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=8&q=' + encodeURIComponent(q), {
     headers: { 'Authorization': 'Bearer ' + accessToken }
@@ -70,7 +67,6 @@ const server = http.createServer(async (req, res) => {
   try { u = new URL(req.url, 'http://x'); } catch(e){ return send(res, 400, 'bad'); }
   const p = u.pathname;
 
-  // 1) Start Google OAuth
   if (p === '/auth/google') {
     if (!gmailReady()) return send(res, 503, 'Gmail not configured', 'text/plain');
     const space = u.searchParams.get('space') || '';
@@ -82,7 +78,6 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(302, { Location: authUrl }); return res.end();
   }
 
-  // 2) OAuth callback
   if (p === '/auth/google/callback') {
     try {
       const code = u.searchParams.get('code'); const space = u.searchParams.get('state') || '';
@@ -99,7 +94,6 @@ const server = http.createServer(async (req, res) => {
     } catch(e){ res.writeHead(302, { Location: '/?gmail=error' }); return res.end(); }
   }
 
-  // 3) Gmail search API
   if (p === '/api/search/gmail') {
     try {
       if (!gmailReady()) return send(res, 503, JSON.stringify({ error: 'not_configured' }));
@@ -113,7 +107,6 @@ const server = http.createServer(async (req, res) => {
     } catch(e){ return send(res, 200, JSON.stringify({ connected: false, results: [], error: String(e) })); }
   }
 
-  // 4) Is Gmail connected for this space?
   if (p === '/api/gmail/status') {
     try {
       if (!gmailReady()) return send(res, 200, JSON.stringify({ configured: false, connected: false }));
@@ -122,7 +115,6 @@ const server = http.createServer(async (req, res) => {
     } catch(e){ return send(res, 200, JSON.stringify({ configured: true, connected: false })); }
   }
 
-  // 5) Static files
   let rel = decodeURIComponent(p); if (rel === '/') rel = '/index.html';
   const fp = path.join(__dirname, path.normalize(rel));
   if (!fp.startsWith(__dirname)) return send(res, 403, 'Forbidden', 'text/plain');
