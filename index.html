@@ -129,6 +129,12 @@
   .modal input{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px;font-size:16px;font-family:inherit;margin-bottom:12px}
   .modal input:focus{outline:none;border-color:var(--ink)}
   .modal .row{display:flex;gap:8px}
+  .t.note{cursor:pointer} .t.note.has{background:var(--ink);color:#fff}
+  .notewrap{margin-top:8px}
+  .notepreview{background:var(--soft);border-radius:9px;padding:8px 10px;font-size:12.5px;color:#3a3a3a;line-height:1.5;cursor:pointer;white-space:pre-wrap}
+  .noteedit{width:100%;border:1.5px solid var(--ink);border-radius:10px;padding:9px;font-family:inherit;font-size:13.5px;line-height:1.5;min-height:64px;resize:vertical;color:var(--ink)}
+  .noteedit:focus{outline:none}
+  .notebar{display:flex;gap:6px;margin-top:6px}
 </style>
 </head>
 <body>
@@ -414,7 +420,12 @@ function taskEl(t){
     <div style="flex:1"><div class="bartop ${bar}" onclick="cycleTaskPri(${t.id})" title="דחיפות"></div>
     <div class="txt">${esc(t.txt)}</div><div class="tags">
       ${t.pri==='hi'&&!dm.over?'<span class="t pri">דחוף</span>':''}${dc}${tc}
-      <span class="t cli">${esc(t.client)}</span><span class="trash" onclick="delTask(${t.id})">מחק</span></div></div>`;
+      <span class="t note ${t.notes?'has':''}" onclick="openNote(${t.id})">${t.notes?'הערה':'＋הערה'}</span>
+      <span class="t cli">${esc(t.client)}</span><span class="trash" onclick="delTask(${t.id})">מחק</span></div>
+    ${editingNote===t.id
+      ? `<div class="notewrap"><textarea class="noteedit" oninput="noteInput(${t.id},this.value)" placeholder="הערה למשימה...">${esc(t.notes||'')}</textarea><div class="notebar"><button class="btn gray sm" onclick="closeNote()">סגור</button></div></div>`
+      : (t.notes?`<div class="notewrap"><div class="notepreview" onclick="openNote(${t.id})">${esc(t.notes)}</div></div>`:'')}
+    </div>`;
   return d;
 }
 function setTaskDate(id,val){const t=db.tasks.find(x=>x.id===id);if(!t||!val)return;t.dueIso=new Date(val+'T00:00:00').toISOString();save();renderTasks();toast('תאריך עודכן');}
@@ -422,6 +433,10 @@ function setTaskTime(id,val){const t=db.tasks.find(x=>x.id===id);if(!t)return;t.
 function toggleDone(id){const t=db.tasks.find(x=>x.id===id);t.done=!t.done;save();toast(t.done?'✓ בוצע':'הוחזר');renderTasks()}
 function cycleTaskPri(id){const t=db.tasks.find(x=>x.id===id);t.pri=t.pri==='lo'?'mid':t.pri==='mid'?'hi':'lo';save();renderTasks()}
 function delTask(id){db.tasks=db.tasks.filter(x=>x.id!==id);save();toast('נמחק');renderTasks()}
+let editingNote=null;
+function openNote(id){editingNote=id;renderTasks();setTimeout(()=>{const ta=document.querySelector('.noteedit');if(ta){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);}},60);}
+function closeNote(){editingNote=null;renderTasks();toast('הערה נשמרה');}
+function noteInput(id,val){const t=db.tasks.find(x=>x.id===id);if(!t)return;t.notes=val;save();}
 
 /* ===== pulse ===== */
 function renderStatus(){
