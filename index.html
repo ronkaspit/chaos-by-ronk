@@ -135,6 +135,26 @@
   .noteedit{width:100%;border:1.5px solid var(--ink);border-radius:10px;padding:9px;font-family:inherit;font-size:13.5px;line-height:1.5;min-height:64px;resize:vertical;color:var(--ink)}
   .noteedit:focus{outline:none}
   .notebar{display:flex;gap:6px;margin-top:6px}
+  .seg{display:flex;gap:7px;margin-bottom:11px}
+  .seg button{flex:1;border:1.5px solid var(--line);background:#fff;border-radius:11px;padding:9px;font-weight:800;font-size:13px;font-family:inherit;color:var(--sub);cursor:pointer;letter-spacing:.2px}
+  .seg button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  .filters{display:flex;gap:6px;overflow-x:auto;margin-bottom:13px;padding-bottom:2px;-ms-overflow-style:none;scrollbar-width:none}
+  .filters::-webkit-scrollbar{display:none}
+  .fchip{white-space:nowrap;border:1.5px solid var(--line);background:#fff;border-radius:20px;padding:6px 13px;font-size:12px;font-weight:800;color:var(--sub);cursor:pointer;letter-spacing:.2px}
+  .fchip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  .focus{background:var(--ink);color:#fff;border-radius:13px;padding:12px 14px;margin-bottom:13px;display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:800;font-size:13.5px}
+  .focus .fg{font-size:17px} .focus .go{margin-inline-start:auto;font-size:12px;opacity:.7;font-weight:700}
+  .clihead{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:9px;cursor:pointer;box-shadow:var(--shadow)}
+  .clihead.burn{border-color:var(--ink);border-width:1.5px}
+  .clihead .nm{font-weight:900;font-size:15.5px;letter-spacing:.2px}
+  .clihead .sub{font-size:11.5px;color:var(--sub);margin-top:2px}
+  .clihead .chev{margin-inline-start:auto;color:var(--sub);font-weight:900;font-size:13px}
+  .clibody{margin:0 2px 10px;padding-inline-start:4px;border-inline-start:2px solid var(--line)}
+  .clibody .task{margin-inline-start:6px}
+  .muted{color:var(--sub);font-size:12.5px;padding:8px 6px}
+  .t.flag{cursor:pointer;border:1px solid var(--gray-lite);background:#fff;color:var(--gray);font-weight:900}
+  .t.flag.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .listcount{font-size:11px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.3px;margin:2px 3px 10px}
 </style>
 </head>
 <body>
@@ -172,7 +192,8 @@
 </section>
 
 <section class="screen" id="scr-tasks">
-  <h2 class="title">סֵדֶר <small>· ממוין לפי דחיפות</small></h2>
+  <h2 class="title">סֵדֶר <small>· סדר בכאוס</small></h2>
+  <div id="orderControls"></div>
   <div id="taskList"></div>
 </section>
 
@@ -389,27 +410,69 @@ function setDraftTime(i,v){draft[i].dueTime=v||'';renderDraft()}
 function rmDraft(i){draft.splice(i,1);renderDraft()}
 function saveDraft(){
   const created=new Date().toISOString();
-  draft.forEach(t=>db.tasks.push({id:db.seq++,client:db.active,txt:t.txt,pri:t.pri,dueIso:t.dueIso,dueTime:t.dueTime||'',done:false,created}));
+  draft.forEach(t=>db.tasks.push({id:db.seq++,client:db.active,txt:t.txt,pri:t.pri,dueIso:t.dueIso,dueTime:t.dueTime||'',flag:false,done:false,created}));
   save();const n=draft.length;draft=[];renderDraft();document.getElementById('freeText').value='';toast('✓ נשמרו '+n+' משימות');
 }
 
-/* ===== tasks ===== */
-function urgency(t){const dm=dueMeta(t);return priRank[t.pri]+(dm.over?-2:0)+(dm.today?-1:0)}
+/* ===== tasks: hierarchy + filters + flag ===== */
+let orderMode='byClient', taskFilter='open', expanded={};
+function urgency(t){const dm=dueMeta(t);let u=priRank[t.pri]+(dm.over?-2:0)+(dm.today?-1:0);if(t.flag)u-=100;return u;}
+function isBurn(t){return !t.done&&(t.flag||dueMeta(t).over);}
+function passFilter(t){const dm=dueMeta(t);
+  if(taskFilter==='done')return t.done;
+  if(taskFilter==='today')return !t.done&&dm.today;
+  if(taskFilter==='burn')return isBurn(t);
+  if(taskFilter==='open')return !t.done;
+  return true; /* all */}
+function setMode(m){orderMode=m;renderTasks();}
+function setFilter(f){taskFilter=f;renderTasks();}
+function toggleClient(name){expanded[name]=!expanded[name];renderTasks();}
+const FILTERS=[['open','פתוחות'],['burn','בוער'],['today','להיום'],['done','בוצעו'],['all','הכל']];
+function renderControls(){
+  const c=document.getElementById('orderControls');if(!c)return;
+  if(db.tasks.length===0){c.innerHTML='';return;}
+  const open=db.tasks.filter(t=>!t.done);
+  const burn=open.filter(isBurn).length, today=open.filter(t=>dueMeta(t).today).length;
+  const focus=(burn||today)?`<div class="focus" onclick="setMode('all');setFilter('burn')"><span class="fg">☠</span><span>בוער: ${burn} · להיום: ${today}</span><span class="go">הצג ›</span></div>`:'';
+  const seg=`<div class="seg"><button class="${orderMode==='byClient'?'on':''}" onclick="setMode('byClient')">לפי לקוח</button><button class="${orderMode==='all'?'on':''}" onclick="setMode('all')">כל המשימות</button></div>`;
+  const fil='<div class="filters">'+FILTERS.map(f=>`<div class="fchip ${taskFilter===f[0]?'on':''}" onclick="setFilter('${f[0]}')">${f[1]}</div>`).join('')+'</div>';
+  c.innerHTML=focus+seg+fil;
+}
 function renderTasks(){
+  renderControls();
   const wrap=document.getElementById('taskList');if(!wrap)return;wrap.innerHTML='';
   if(db.tasks.length===0){wrap.innerHTML='<div class="empty"><span class="big">☰</span>אין עדיין משימות.<br>עבור ל"פריקה", בחר לקוח וזרוק מה שעלה בפגישה.</div>';return}
-  const open=db.tasks.filter(t=>!t.done),done=db.tasks.filter(t=>t.done);
-  const byClient={};open.forEach(t=>(byClient[t.client]=byClient[t.client]||[]).push(t));
-  const order=Object.keys(byClient).sort((a,b)=>Math.min(...byClient[a].map(urgency))-Math.min(...byClient[b].map(urgency)));
-  order.forEach(cl=>{
-    const list=byClient[cl].sort((a,b)=>urgency(a)-urgency(b));
-    const h=document.createElement('div');h.className='group-h';
-    h.innerHTML=`<div class="name">${esc(cl)}</div><div class="cnt">${list.length} פתוחות</div>`;
-    wrap.appendChild(h);list.forEach(t=>wrap.appendChild(taskEl(t)));
+  if(orderMode==='all'){renderAll(wrap);return;}
+  renderByClient(wrap);
+}
+function renderAll(wrap){
+  const list=db.tasks.filter(passFilter).sort((a,b)=>urgency(a)-urgency(b));
+  if(!list.length){wrap.innerHTML='<div class="empty">אין משימות בסינון הזה.</div>';return}
+  const cnt=document.createElement('div');cnt.className='listcount';cnt.textContent=list.length+' משימות';wrap.appendChild(cnt);
+  list.forEach(t=>wrap.appendChild(taskEl(t)));
+}
+function renderByClient(wrap){
+  const clients=[...new Set(db.tasks.map(t=>t.client))];
+  clients.sort((a,b)=>{
+    const mn=n=>{const o=db.tasks.filter(t=>t.client===n&&!t.done);return o.length?Math.min(...o.map(urgency)):999;};
+    return mn(a)-mn(b);
   });
-  if(done.length){const h=document.createElement('div');h.className='group-h doneh';
-    h.innerHTML=`<div class="name">בוצעו</div><div class="cnt">${done.length}</div>`;
-    wrap.appendChild(h);done.forEach(t=>wrap.appendChild(taskEl(t)));}
+  clients.forEach(cl=>{
+    const all=db.tasks.filter(t=>t.client===cl);
+    const open=all.filter(t=>!t.done);const burn=open.filter(isBurn).length;
+    const head=document.createElement('div');head.className='clihead'+(burn?' burn':'');
+    const pill=burn?`<span class="pill warn">${burn} בוער</span>`:open.length?`<span class="pill ok">${open.length} פתוחות</span>`:'<span class="pill ok">הושלם</span>';
+    head.innerHTML=`<div><div class="nm">${esc(cl)}</div><div class="sub">${open.length} פתוחות · ${all.length-open.length} בוצעו</div></div>${pill}<span class="chev">${expanded[cl]?'▾':'▸'}</span>`;
+    head.onclick=()=>toggleClient(cl);
+    wrap.appendChild(head);
+    if(expanded[cl]){
+      const body=document.createElement('div');body.className='clibody';
+      const list=all.filter(passFilter).sort((a,b)=>urgency(a)-urgency(b));
+      if(!list.length)body.innerHTML='<div class="muted">אין משימות בסינון הזה.</div>';
+      else list.forEach(t=>body.appendChild(taskEl(t)));
+      wrap.appendChild(body);
+    }
+  });
 }
 function taskEl(t){
   const d=document.createElement('div');d.className='task'+(t.done?' done':'');
@@ -419,7 +482,8 @@ function taskEl(t){
   d.innerHTML=`<div class="check" onclick="toggleDone(${t.id})"><svg viewBox="0 0 24 24"><polyline points="4,12 10,18 20,6"/></svg></div>
     <div style="flex:1"><div class="bartop ${bar}" onclick="cycleTaskPri(${t.id})" title="דחיפות"></div>
     <div class="txt">${esc(t.txt)}</div><div class="tags">
-      ${t.pri==='hi'&&!dm.over?'<span class="t pri">דחוף</span>':''}${dc}${tc}
+      <span class="t flag ${t.flag?'on':''}" onclick="event.stopPropagation();toggleFlag(${t.id})" title="דגל דחוף">⚑${t.flag?' ☠':''}</span>
+      ${t.pri==='hi'&&!dm.over&&!t.flag?'<span class="t pri">דחוף</span>':''}${dc}${tc}
       <span class="t note ${t.notes?'has':''}" onclick="openNote(${t.id})">${t.notes?'הערה':'＋הערה'}</span>
       <span class="t cli">${esc(t.client)}</span><span class="trash" onclick="delTask(${t.id})">מחק</span></div>
     ${editingNote===t.id
@@ -432,6 +496,7 @@ function setTaskDate(id,val){const t=db.tasks.find(x=>x.id===id);if(!t||!val)ret
 function setTaskTime(id,val){const t=db.tasks.find(x=>x.id===id);if(!t)return;t.dueTime=val||'';save();renderTasks();toast(val?'השעה עודכנה':'השעה נוקתה');}
 function toggleDone(id){const t=db.tasks.find(x=>x.id===id);t.done=!t.done;save();toast(t.done?'✓ בוצע':'הוחזר');renderTasks()}
 function cycleTaskPri(id){const t=db.tasks.find(x=>x.id===id);t.pri=t.pri==='lo'?'mid':t.pri==='mid'?'hi':'lo';save();renderTasks()}
+function toggleFlag(id){const t=db.tasks.find(x=>x.id===id);t.flag=!t.flag;save();toast(t.flag?'⚑ סומן כבוער':'הדגל הוסר');renderTasks()}
 function delTask(id){db.tasks=db.tasks.filter(x=>x.id!==id);save();toast('נמחק');renderTasks()}
 let editingNote=null;
 function openNote(id){editingNote=id;renderTasks();setTimeout(()=>{const ta=document.querySelector('.noteedit');if(ta){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);}},60);}
